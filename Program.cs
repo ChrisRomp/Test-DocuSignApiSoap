@@ -29,7 +29,8 @@ namespace DocuSignApiSoap
                 OperationContext.Current.OutgoingMessageProperties[HttpRequestMessageProperty.Name] = httpRequestProperty;
 
                 EnvelopeStatus status = client.RequestStatusEx(_envelopeId);
-                Console.Out.WriteLine("Subject: " + status.Subject);
+                Console.WriteLine($"Envelope ID: {_envelopeId}");
+                Console.WriteLine("Subject: " + status.Subject);
 
                 // RequestEnvelope Method
                 //var envelope = client.RequestEnvelope(_envelopeId, false);
@@ -43,19 +44,33 @@ namespace DocuSignApiSoap
                 };
                 var envelopeV2 = client.RequestEnvelopeV2(_envelopeId, requestOptions);
 
-                if (envelopeV2.Tabs.Any())
+                if (envelopeV2.Recipients != null && envelopeV2.Recipients.Any())
                 {
                     var index = 1;
-                    Console.WriteLine("\r\nTab data:\r\n");
+                    Console.WriteLine($"{Environment.NewLine}Recipients:{Environment.NewLine}");
+
+                    foreach(var rec in envelopeV2.Recipients)
+                    {
+                        Console.WriteLine($"{index++}. {rec.UserName} <{rec.Email}>");
+                    }
+                }
+
+                if (envelopeV2.Tabs != null && envelopeV2.Tabs.Any())
+                {
+                    var index = 1;
+                    Console.WriteLine($"{Environment.NewLine}Tab data:{Environment.NewLine}");
 
                     foreach (var tab in envelopeV2.Tabs)
                     {
                         var recipient = envelopeV2.Recipients.FirstOrDefault(r => r.ID == tab.RecipientID);
-                        Console.WriteLine($"{index++}: ({recipient?.RoleName}/{recipient?.UserName}) {tab.TabLabel}: {tab.Value}");
+                        Console.WriteLine($"{index++}: ({recipient?.RoleName ?? "[no role]"}/{recipient?.UserName}) {tab.TabLabel}: {tab.Value}");
                     }
+                } else
+                {
+                    Console.WriteLine($"{Environment.NewLine}No tab data found.");
                 }
 
-                Console.WriteLine("\r\nDone.");
+                Console.WriteLine($"{Environment.NewLine}Done.");
                 Console.ReadKey();
             }
 
